@@ -32,6 +32,5 @@ test
 TODO.txt
 *env.sh*
 *prometheus*
-.env
 *.bak
 *.log

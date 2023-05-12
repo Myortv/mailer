@@ -49,31 +49,62 @@ CREATE TABLE public.client (
     mobile_operator_code public.phonecode NOT NULL,
     tag text,
     timezone text,
-    phone_number public.phonenumber,
     start_recieve time without time zone,
-    recieve_duration interval
+    recieve_duration interval,
+    phone_number public.phonenumber NOT NULL
 );
 
 
 ALTER TABLE public.client OWNER TO postgres;
 
 --
--- Name: aviable_clients; Type: VIEW; Schema: public; Owner: postgres
+-- Name: available_clients; Type: VIEW; Schema: public; Owner: postgres
 --
 
-CREATE VIEW public.aviable_clients AS
+CREATE VIEW public.available_clients AS
  SELECT client.id,
     client.mobile_operator_code,
     client.tag,
     client.timezone,
-    client.phone_number,
     client.start_recieve,
-    client.recieve_duration
+    client.recieve_duration,
+    client.phone_number
    FROM public.client
-  WHERE (((now() AT TIME ZONE client.timezone) >= (((CURRENT_DATE AT TIME ZONE client.timezone))::date + ((client.start_recieve AT TIME ZONE client.timezone))::time without time zone)) AND ((now() AT TIME ZONE client.timezone) <= ((((CURRENT_DATE AT TIME ZONE client.timezone))::date + ((client.start_recieve AT TIME ZONE client.timezone))::time without time zone) + client.recieve_duration)));
+  WHERE (((now() AT TIME ZONE client.timezone) >= (((now() AT TIME ZONE client.timezone))::date + client.start_recieve)) AND ((now() AT TIME ZONE client.timezone) <= ((((now() AT TIME ZONE client.timezone))::date + client.start_recieve) + client.recieve_duration)));
 
 
-ALTER TABLE public.aviable_clients OWNER TO postgres;
+ALTER TABLE public.available_clients OWNER TO postgres;
+
+--
+-- Name: mailing; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.mailing (
+    id integer NOT NULL,
+    start_time timestamp with time zone DEFAULT now(),
+    end_time timestamp with time zone,
+    body text NOT NULL,
+    filters json DEFAULT '{}'::json
+);
+
+
+ALTER TABLE public.mailing OWNER TO postgres;
+
+--
+-- Name: available_mailings; Type: VIEW; Schema: public; Owner: postgres
+--
+
+CREATE VIEW public.available_mailings AS
+ SELECT mailing.id,
+    mailing.start_time,
+    mailing.end_time,
+    mailing.body,
+    mailing.filters
+   FROM public.mailing
+  WHERE ((now() >= mailing.start_time) AND (now() <= mailing.end_time));
+
+
+ALTER TABLE public.available_mailings OWNER TO postgres;
 
 --
 -- Name: client_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
@@ -96,21 +127,6 @@ ALTER TABLE public.client_id_seq OWNER TO postgres;
 
 ALTER SEQUENCE public.client_id_seq OWNED BY public.client.id;
 
-
---
--- Name: mailing; Type: TABLE; Schema: public; Owner: postgres
---
-
-CREATE TABLE public.mailing (
-    id integer NOT NULL,
-    start_time timestamp with time zone DEFAULT now(),
-    end_time timestamp with time zone,
-    body text NOT NULL,
-    filters json[] DEFAULT '{}'::json[]
-);
-
-
-ALTER TABLE public.mailing OWNER TO postgres;
 
 --
 -- Name: mailing_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
@@ -172,6 +188,23 @@ ALTER SEQUENCE public.message_id_seq OWNED BY public.message.id;
 
 
 --
+-- Name: message_status_stats; Type: VIEW; Schema: public; Owner: postgres
+--
+
+CREATE VIEW public.message_status_stats AS
+ SELECT jsoned.mailing_id,
+    json_agg(json_build_object(jsoned.status, jsoned.count)) AS status
+   FROM ( SELECT count(message.id) AS count,
+            message.mailing_id,
+            message.status
+           FROM public.message
+          GROUP BY message.status, message.mailing_id) jsoned
+  GROUP BY jsoned.mailing_id;
+
+
+ALTER TABLE public.message_status_stats OWNER TO postgres;
+
+--
 -- Name: client id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -206,6 +239,14 @@ ALTER TABLE ONLY public.client
 
 ALTER TABLE ONLY public.mailing
     ADD CONSTRAINT mailing_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: message message_mailing_id_client_id_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.message
+    ADD CONSTRAINT message_mailing_id_client_id_key UNIQUE (mailing_id, client_id);
 
 
 --
