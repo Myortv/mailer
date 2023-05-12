@@ -6,7 +6,8 @@ import asyncpg
 
 import logging
 
-from app.utils.exceptions import raise_exception
+from scheduler.utils.exceptions import raise_exception
+logger = logging.getLogger('filelogger')
 
 
 class DatabaseManager:
@@ -44,10 +45,22 @@ class DatabaseManager:
                         result = await func(*args, conn=conn, **kwargs)
                         return result
                     except ValidationError as e:
-                        raise_exception(e)
+                        logger.exception(
+                            'Validation error catched in acquire_connection. '
+                            f'called func ({func})'
+                            f'{args} {kwargs} {e}'
+                        )
                     except HTTPException as e:
-                        raise_exception(e)
+                        logger.exception(
+                            'HTTPException error catched in acquire_connection. '
+                            f'called func ({func})'
+                            f'{args} {kwargs} {e}'
+                        )
                     except Exception as e:
-                        logging.warning(e)
+                        logger.exception(
+                            'General error catched in acquire_connection. '
+                            f'called func ({func})'
+                            f'{args} {kwargs} {e}'
+                        )
             return wrapper
         return decorator

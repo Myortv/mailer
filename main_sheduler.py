@@ -21,8 +21,10 @@ DEFAULT_TIMEZONE = datetime.datetime.now().tzinfo
 scheduler = AsyncIOScheduler()
 
 settings.SCHEDULER = scheduler
-trigger_check_free = IntervalTrigger(seconds=10)
-trigger_clean_tasks = IntervalTrigger(seconds=10)
+# trigger_check_free = IntervalTrigger(seconds=60*5)
+# trigger_clean_tasks = IntervalTrigger(seconds=20)
+trigger_check_free = IntervalTrigger(seconds=6)
+trigger_clean_tasks = IntervalTrigger(seconds=2)
 
 
 scheduler.configure(
@@ -65,5 +67,6 @@ if __name__== '__main__':
         sys.exit()
     except Exception as e:
         printt('INTERRUPTED WITH ERROR')
+        filelogger(e)
         asyncio.get_event_loop().run_until_complete(shutdown())
         raise e

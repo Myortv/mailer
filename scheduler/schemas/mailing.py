@@ -1,6 +1,6 @@
 import datetime
 
-from typing import Optional
+from typing import Optional, Any
 
 from pydantic import BaseModel
 from pydantic import validator
@@ -10,9 +10,9 @@ from scheduler.schemas.client import ClientFliter
 
 class MailingBase(BaseModel):
     start_time: datetime.datetime
-    end_time: Optional[datetime.datetime] = None
+    end_time: datetime.datetime
     body: str
-    filters: dict = dict()
+    filters: dict | Any = dict()
 
     # @validator('start_time', 'end_time')
     # def is_time_valid(cls, v):

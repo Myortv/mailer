@@ -6,7 +6,7 @@ from scheduler.schemas.client import ClientInDB, ClientFliter, FreeClientInDB
 
 from scheduler.db.base import DatabaseManager as DM
 
-import logging
+# import logging
 
 
 def unpack_data(data):
@@ -26,7 +26,7 @@ def generate_placeholder(data, i=0):
     for j, field in enumerate(fields):
         if values[j] is not None:
             i += 1
-            pair += f'and aviable_clietns.{field} = ${i}'
+            pair += f' and {field} = ${i} '
             values_out.append(values[j])
     return pair, values_out
 
@@ -38,7 +38,7 @@ async def get_free_clients(
     conn: Connection = None,
 ) -> List:
     placeholder, values = generate_placeholder(filters, i=1)
-    logging.info(f'\t\tinside get free clients. placeholder: {placeholder}')
+    # logging.info(f'\t\tinside get free clients. placeholder: {placeholder}')
     result = await conn.fetch(
         'select '
             'id, '
@@ -49,9 +49,9 @@ async def get_free_clients(
             'recieve_duration, '
             'phone_number '
         'from '
-        'aviable_clients '
+        'available_clients '
             'where ('
-                "aviable_clients.id in ("
+                "id in ("
                     "select client_id from message where message.status != 'await' "
                 ") and "
                 "$1 in ("
@@ -62,8 +62,8 @@ async def get_free_clients(
         mailing_id,
         *values
     )
-    logging.info(f'\t\tinside get free clients. placeholder: {placeholder}')
-    logging.info(f'\t\tinside get free clients. clients: {result}')
+    # logging.info(f'\t\tinside get free clients. placeholder: {placeholder}')
+    # logging.info(f'\t\tinside get free clients. clients: {result}')
     if not result:
         return
     clients = [FreeClientInDB(**client) for client in result]

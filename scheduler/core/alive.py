@@ -1,6 +1,6 @@
 from typing import List
 
-from app.sheduler.datatypes import Mailing
+from scheduler.schemas.datatypes import Mailing
 
 
 class AliveMailings:

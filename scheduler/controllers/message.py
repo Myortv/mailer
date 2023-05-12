@@ -13,7 +13,7 @@ async def create_message(
     message: MessageCreate,
     conn: Connection = None,
 ) -> List:
-    logging.info(f'\t\tinside crate message')
+    # logging.info(f'\t\tinside crate message')
     result = await conn.fetchrow(
         'insert into message (status, mailing_id, client_id) values ($1, $2, $3) '
         'on conflict (mailing_id, client_id) do update set status = message.status returning *',  # change on update
@@ -21,7 +21,7 @@ async def create_message(
         message.mailing_id,
         message.client_id,
     )
-    logging.info(f'\t\tinside create message. message: {result}')
+    # logging.info(f'\t\tinside create message. message: {result}')
     if not result:
         return
     message = MessageInDB(**result)

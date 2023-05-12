@@ -29,7 +29,7 @@ file_formatter = logging.Formatter(
 log_queue = queue.Queue()
 queue_handler = QueueHandler(log_queue)
 queue_handler.setFormatter(file_formatter)
-queue_handler.setLevel(logging.INFO)
+queue_handler.setLevel(logging.DEBUG)
 
 filelogger = logging.getLogger('filelogger')
 filelogger.addHandler(queue_handler)
