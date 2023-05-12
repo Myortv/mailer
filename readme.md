@@ -1,9 +1,22 @@
+Summary:
+At first I wanted to make the messaging service work together with the fastapi endpoints, but quickly gave up on the idea.
+Fastapi can be run in multiprocessor mode, and this creates an overhead to synchronize the sending service.
+
+Both the endpoints and the distribution service run asynchronously. Also, the distribution service could be modified to run in multiprocessor mode (yes, this would require a synchronization mechanism, but it doesn't look impossible)
+
+The messaging service is made to be reliable, and reasonably efficient.
+
+And it provides a timeout for the mailing. When the mailing becomes relevant (it's time to start the mailing) the message creation process starts. It's likely that most of the messages that will be sent out as part of the newsletter will be sent out the moment it starts. 
+However, at any time a new customer may come in or the restrictions of the mailing may change, taking on new customers, so the mailing should be checked until it is finished. However, there won't be many clients during the time the newsletter is running, so it's not efficient to keep checking for new clients. 
+Therefore the newsletter gets a timeout if no clients are found in the next check. This way the performance and responsiveness of the service can be adjusted flexibly. Make it more responsive -- reduce the timeout and check time for new mailings. Make it more efficient -- increase timeout and check time for new mailings.
+
+
 Installation
 
 
 Clone repository 
 ```bash
-git clone https://gitlab.com/Myortv/test-task.git  
+git clone https://gitlab.com/Myortv/mailing.git  
 ```
 
 Create virtual envirement
@@ -18,7 +31,7 @@ Activate envirement
 
 Install dependendencies
 ```bash
-pip install -r test-task/req.txt
+pip install -r mailing/req.txt
 ```
 
 You need to install Postgres somehow. Follow guides for your linux destribution or official guide
@@ -102,14 +115,3 @@ Tasks done:
 11. Additional buisness logic
 12. Logging
 
-Summary:
-At first I wanted to make the messaging service work together with the fastapi endpoints, but quickly gave up on the idea.
-Fastapi can be run in multiprocessor mode, and this creates an overhead to synchronize the sending service.
-
-Both the endpoints and the distribution service run asynchronously. Also, the distribution service could be modified to run in multiprocessor mode (yes, this would require a synchronization mechanism, but it doesn't look impossible)
-
-The messaging service is made to be reliable, and reasonably efficient.
-
-And it provides a timeout for the mailing. When the mailing becomes relevant (it's time to start the mailing) the message creation process starts. It's likely that most of the messages that will be sent out as part of the newsletter will be sent out the moment it starts. 
-However, at any time a new customer may come in or the restrictions of the mailing may change, taking on new customers, so the mailing should be checked until it is finished. However, there won't be many clients during the time the newsletter is running, so it's not efficient to keep checking for new clients. 
-Therefore the newsletter gets a timeout if no clients are found in the next check. This way the performance and responsiveness of the service can be adjusted flexibly. Make it more responsive -- reduce the timeout and check time for new mailings. Make it more efficient -- increase timeout and check time for new mailings.
